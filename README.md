@@ -5,6 +5,6 @@ take fork from https://github.com/goblinrieur/forthsnake/commits?author=robertpf
 
 I will try some updates just for my own fun and knowledge.
 
-![asciinema](https://asciinema.org/a/360134)
+[asciinema](https://asciinema.org/a/360134)
 
 
