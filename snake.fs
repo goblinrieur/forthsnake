@@ -9,6 +9,15 @@ variable direction
 : xdim 50 ;
 : ydim 20 ;
 
+\ score file management
+4 constant max-line
+variable fd-out
+variable fd-in
+variable #src-fd-in
+variable 'src-fd-in
+Create line-buffer max-line 2 + allot
+
+\ create snake & apple position grid 
 create snake snake-size cells 2 * allot
 create apple 2 cells allot
 
@@ -25,7 +34,7 @@ create apple 2 cells allot
 ;
 
 : head* ( -- x y ) 
-	0 segment \ ." +"
+	0 segment  
 ;
 
 : move-head! ( -- ) 
@@ -91,7 +100,7 @@ create apple 2 cells allot
 ;
 
 : render 
-	page draw-snake draw-apple draw-frame cr length @ . 
+	page draw-snake draw-apple draw-frame cr ."      " length @ . 
 ;
 
 : newgame!
@@ -101,8 +110,9 @@ create apple 2 cells allot
 
 : prepareexit 
 	cr cr 
-	." QUIT" 
+	." You choose to QUIT as a looser ... " 
 	cr cr
+	cr cr ." *** GAME OVER ***" key cr cr 
 	bye
 ;
 
@@ -126,12 +136,27 @@ create apple 2 cells allot
 		then
 		dead? 
 	until 
-	drop cr cr ." *** GAME OVER ***" key cr cr bye 
+	drop cr cr ." *** GAME OVER ***" key cr cr 
+	bye 
 ;
 
-newgame! \ init
+: displayscoretobeat
+	here 'src-fd-in ! 							\ ram position
+	s" .score" r/o open-file throw fd-in !
+	here 4 fd-in @ read-file throw 
+	dup allot								\ one alloc = 1 line
+	fd-in @ close-file throw						\ now close file
+	here 'src-fd-in @ - #src-fd-in ! 					\ get allocated
+	'src-fd-in @ #src-fd-in @ ."     Score to beat "  type cr		\ display it  
+;
 
-page cr 
-." Snake in Forth" cr
-." Press key to run game" key  \ wait for user to be ready 
-150 gameloop
+page cr cr
+."      *** Snake in Forth ***" cr cr 
+displayscoretobeat
+."      Use           i         for going up" cr 
+."                j       l     for going left or right" cr
+."                    k         for going down" cr cr cr 
+."      You can olso in game press q to quit before the end" cr cr
+."      Press key to run game" key 				 		\ wait for user to be ready 
+newgame! 									\ init
+125 gameloop
