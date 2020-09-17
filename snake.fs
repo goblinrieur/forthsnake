@@ -1,5 +1,7 @@
 variable head
 variable length
+variable tobeat
+variable finalscore
 variable direction
 
 : not ( b -- b ) true xor ;
@@ -11,7 +13,7 @@ variable direction
 
 \ score file management
 4 constant max-line
-variable fd-out
+0 value fd-out
 variable fd-in
 variable #src-fd-in
 variable 'src-fd-in
@@ -100,7 +102,7 @@ create apple 2 cells allot
 ;
 
 : render 
-	page draw-snake draw-apple draw-frame cr ."      " length @ . 
+	page draw-snake draw-apple draw-frame cr ."      Score : " length @ dup finalscore ! . 
 ;
 
 : newgame!
@@ -108,12 +110,36 @@ create apple 2 cells allot
   ['] up direction ! left step! left step! left step! left step! 
 ;
 
-: prepareexit 
+: prepareexit 	\ no score save what ever it is
 	cr cr 
 	." You choose to QUIT as a looser ... " 
 	cr cr
 	cr cr ." *** GAME OVER ***" key cr cr 
 	bye
+;
+
+
+: displayscoretobeat
+	here 'src-fd-in ! 							\ ram position
+	s" .score" r/o open-file throw fd-in !
+	here 4 fd-in @ read-file throw 
+	dup allot								\ one alloc = 1 line
+	fd-in @ close-file throw						\ now close file
+	here 'src-fd-in @ - #src-fd-in ! 					\ get allocated
+	'src-fd-in @ #src-fd-in @ ."      Score to beat "  type cr					\ display it  
+;
+
+: highscore? ( finalscore > fd-in -- file )
+\ 	displayscoretobeat 
+	." Your score " finalscore @ . cr
+	'src-fd-in @ #src-fd-in @  finalscore @  < if
+\		s" .score" w/o open-file throw to fd-out
+\		finalscore @ . to fd-out 
+		\ fd-out @ write-line throw 
+\		 fd-out write-line throw 
+\		." @ @ write"
+\		fd-out @ close-file throw						\ now close file
+	then
 ;
 
 : gameloop ( time -- )
@@ -137,26 +163,17 @@ create apple 2 cells allot
 		dead? 
 	until 
 	drop cr cr ." *** GAME OVER ***" key cr cr 
+	highscore?
 	bye 
-;
-
-: displayscoretobeat
-	here 'src-fd-in ! 							\ ram position
-	s" .score" r/o open-file throw fd-in !
-	here 4 fd-in @ read-file throw 
-	dup allot								\ one alloc = 1 line
-	fd-in @ close-file throw						\ now close file
-	here 'src-fd-in @ - #src-fd-in ! 					\ get allocated
-	'src-fd-in @ #src-fd-in @ ."     Score to beat "  type cr		\ display it  
 ;
 
 page cr cr
 ."      *** Snake in Forth ***" cr cr 
-displayscoretobeat
 ."      Use           i         for going up" cr 
 ."                j       l     for going left or right" cr
 ."                    k         for going down" cr cr cr 
 ."      You can olso in game press q to quit before the end" cr cr
-."      Press key to run game" key 				 		\ wait for user to be ready 
+."      Press key to run game" cr cr 						\ wait for user to be ready 
+displayscoretobeat key
 newgame! 									\ init
 125 gameloop
