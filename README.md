@@ -13,7 +13,7 @@ on google group I got solution & tested it as return :
 
 -- 2020 09 18 --
 
-[asciinema](https://asciinema.org/a/360407)
+[dev test](https://asciinema.org/a/360407)
 
 so I adapted it to the current dev branch commit (snake)
 
@@ -23,3 +23,4 @@ Next steps might be optimization & cleaning of the code
 
 but the game is done.
 
+[![real condition test](https://asciinema.org/a/360439.png)](https://asciinema.org/a/360439)
