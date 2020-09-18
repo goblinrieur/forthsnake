@@ -5,7 +5,7 @@ variable finalscore
 variable direction
 
 : not ( b -- b ) true xor ;
-: myrand ( a b -- r ) over - utime + swap mod + ; 
+: myrand ( a b -- r ) over - utime + swap mod + ;  \ random seed is not very good 
 
 : snake-size 200 ;
 : xdim 50 ;
@@ -13,11 +13,12 @@ variable direction
 
 \ score file management
 4 constant max-line
-0 value fd-out
+0 value fid1	\ file ID for open/write/close functions 
 variable fd-in
 variable #src-fd-in
 variable 'src-fd-in
 Create line-buffer max-line 2 + allot
+create fname 20 allot s" .score" fname place \ good way to assign file name variables
 
 \ create snake & apple position grid 
 create snake snake-size cells 2 * allot
@@ -133,12 +134,15 @@ create apple 2 cells allot
 \ 	displayscoretobeat 
 	." Your score " finalscore @ . cr
 	'src-fd-in @ #src-fd-in @  finalscore @  < if
-\		s" .score" w/o open-file throw to fd-out
-\		finalscore @ . to fd-out 
-		\ fd-out @ write-line throw 
-\		 fd-out write-line throw 
-\		." @ @ write"
-\		fd-out @ close-file throw						\ now close file
+		cr cr ."     ***** NEW HIGH SCORE *****" cr cr 
+		fname count file-status nip if i					\ fileexists ?
+			fname count r/w create-file throw
+		else
+			fname count r/w open-file throw
+		then to fid1 								\ do not forget the file ID
+		finalscore @ s>d <# #s #> 						\ format score as a string
+		fid1 write-line throw							\ write it on file 
+		fid1 close-file throw							\ make real save of file 
 	then
 ;
 
