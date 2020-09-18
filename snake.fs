@@ -1,14 +1,26 @@
 variable head
 variable length
+variable tobeat
+variable finalscore
 variable direction
 
 : not ( b -- b ) true xor ;
-: myrand ( a b -- r ) over - utime + swap mod + ; 
+: myrand ( a b -- r ) over - utime + swap mod + ;  \ random seed is not very good 
 
 : snake-size 200 ;
 : xdim 50 ;
 : ydim 20 ;
 
+\ score file management
+4 constant max-line
+0 value fid1	\ file ID for open/write/close functions 
+variable fd-in
+variable #src-fd-in
+variable 'src-fd-in
+Create line-buffer max-line 2 + allot
+create fname 20 allot s" .score" fname place \ good way to assign file name variables
+
+\ create snake & apple position grid 
 create snake snake-size cells 2 * allot
 create apple 2 cells allot
 
@@ -25,7 +37,7 @@ create apple 2 cells allot
 ;
 
 : head* ( -- x y ) 
-	0 segment \ ." +"
+	0 segment  
 ;
 
 : move-head! ( -- ) 
@@ -91,7 +103,7 @@ create apple 2 cells allot
 ;
 
 : render 
-	page draw-snake draw-apple draw-frame cr length @ . 
+	page draw-snake draw-apple draw-frame cr ."      Score : " length @ dup finalscore ! . 
 ;
 
 : newgame!
@@ -99,11 +111,39 @@ create apple 2 cells allot
   ['] up direction ! left step! left step! left step! left step! 
 ;
 
-: prepareexit 
+: prepareexit 	\ no score save what ever it is
 	cr cr 
-	." QUIT" 
+	." You choose to QUIT as a looser ... " 
 	cr cr
+	cr cr ." *** GAME OVER ***" key cr cr 
 	bye
+;
+
+
+: displayscoretobeat
+	here 'src-fd-in ! 							\ ram position
+	s" .score" r/o open-file throw fd-in !
+	here 4 fd-in @ read-file throw 
+	dup allot								\ one alloc = 1 line
+	fd-in @ close-file throw						\ now close file
+	here 'src-fd-in @ - #src-fd-in ! 					\ get allocated
+	'src-fd-in @ #src-fd-in @ ."      Score to beat "  type cr					\ display it  
+;
+
+: highscore? ( finalscore > fd-in -- file )
+\ 	displayscoretobeat 
+	." Your score " finalscore @ . cr
+	'src-fd-in @ #src-fd-in @  finalscore @  < if
+		cr cr ."     ***** NEW HIGH SCORE *****" cr cr 
+		fname count file-status nip if i					\ fileexists ?
+			fname count r/w create-file throw
+		else
+			fname count r/w open-file throw
+		then to fid1 								\ do not forget the file ID
+		finalscore @ s>d <# #s #> 						\ format score as a string
+		fid1 write-line throw							\ write it on file 
+		fid1 close-file throw							\ make real save of file 
+	then
 ;
 
 : gameloop ( time -- )
@@ -126,12 +166,18 @@ create apple 2 cells allot
 		then
 		dead? 
 	until 
-	drop cr cr ." *** GAME OVER ***" key cr cr bye 
+	drop cr cr ." *** GAME OVER ***" key cr cr 
+	highscore?
+	bye 
 ;
 
-newgame! \ init
-
-page cr 
-." Snake in Forth" cr
-." Press key to run game" key  \ wait for user to be ready 
-150 gameloop
+page cr cr
+."      *** Snake in Forth ***" cr cr 
+."      Use           i         for going up" cr 
+."                j       l     for going left or right" cr
+."                    k         for going down" cr cr cr 
+."      You can olso in game press q to quit before the end" cr cr
+."      Press key to run game" cr cr 						\ wait for user to be ready 
+displayscoretobeat key
+newgame! 									\ init
+125 gameloop
