@@ -5,7 +5,7 @@ variable finalscore
 variable direction
 
 : not ( b -- b ) true xor ;
-: myrand ( a b -- r ) over - utime + swap mod + ;  \ random seed is not very good 
+: myrand ( a b -- r ) over - utime + swap mod + ;  				\ random seed is not very good 
 
 : snake-size 200 ;
 : xdim 50 ;
@@ -13,12 +13,12 @@ variable direction
 
 \ score file management
 4 constant max-line
-0 value fid1	\ file ID for open/write/close functions 
+0 value fid1									\ file ID for open/write/close functions 
 variable fd-in
 variable #src-fd-in
 variable 'src-fd-in
 Create line-buffer max-line 2 + allot
-create fname 20 allot s" .score" fname place \ good way to assign file name variables
+create fname 20 allot s" .score" fname place 					\ good way to assign file name variables
 
 \ create snake & apple position grid 
 create snake snake-size cells 2 * allot
@@ -113,7 +113,7 @@ create apple 2 cells allot
 
 : prepareexit 	\ no score save what ever it is
 	cr cr 
-	." You choose to QUIT as a looser ... " 
+	." You choose to QUIT as a looser ... " 				\ joke to user & troll him without saving even if he made highscore
 	cr cr
 	cr cr ." *** GAME OVER ***" key cr cr 
 	bye
@@ -127,28 +127,28 @@ create apple 2 cells allot
 	dup allot								\ one alloc = 1 line
 	fd-in @ close-file throw						\ now close file
 	here 'src-fd-in @ - #src-fd-in ! 					\ get allocated
-	'src-fd-in @ #src-fd-in @ ."      Score to beat "  type cr					\ display it  
+	'src-fd-in @ #src-fd-in @ ."      Score to beat "  type cr		\ display it  
 ;
 
 : highscore? ( finalscore > fd-in -- file )
 \ 	displayscoretobeat 
 	." Your score " finalscore @ . cr
 	'src-fd-in @ #src-fd-in @  finalscore @  < if
-		cr cr ."     ***** NEW HIGH SCORE *****" cr cr 
-		fname count file-status nip if i					\ fileexists ?
+		cr cr ."     ***** NEW HIGH SCORE *****" cr cr 			\ save score if it is a new high score
+		fname count file-status nip if i				\ fileexists ?
 			fname count r/w create-file throw
 		else
 			fname count r/w open-file throw
-		then to fid1 								\ do not forget the file ID
-		finalscore @ s>d <# #s #> 						\ format score as a string
-		fid1 write-line throw							\ write it on file 
-		fid1 close-file throw							\ make real save of file 
+		then to fid1 							\ do not forget the file ID
+		finalscore @ s>d <# #s #> 					\ format score as a string
+		fid1 write-line throw						\ write it on file 
+		fid1 close-file throw						\ make real save of file 
 	then
 ;
 
 : gameloop ( time -- )
 	begin render dup ms
-		key? if key
+		key? if key							\ next version should manage both uppercase & lowercase
               		dup 113 = if ['] prepareexit else 
 	   		dup 106 = if ['] left else
 	   		dup 105 = if ['] up else
@@ -161,13 +161,13 @@ create apple 2 cells allot
 		then
 	 	direction ! drop  then
 		direction perform step!
-		apple? if 
+		apple? if							\ if we are on apple get it in  
 			eat-apple! 
 		then
-		dead? 
+		dead? 								\ as it is named...
 	until 
 	drop cr cr ." *** GAME OVER ***" key cr cr 
-	highscore?
+	highscore?								\ check & save highscore 
 	bye 
 ;
 
