@@ -24,3 +24,10 @@ Next steps might be optimization & cleaning of the code
 but the game is done.
 
 [![real condition test](https://asciinema.org/a/360439.png)](https://asciinema.org/a/360439)
+
+
+# want to play all projects at once 
+
+you can get sources (menu.sh) & run it from a container docker as you wish
+
+https://hub.docker.com/r/francoispussault/gforthgadgets
